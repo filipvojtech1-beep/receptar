@@ -84,6 +84,8 @@ textarea.f{min-height:110px;resize:vertical}
 .exai{margin-top:8px}
 #exadd{margin-top:14px}
 .exv{margin:26px 0 0;padding-top:16px;border-top:1px solid var(--line);font-size:17px;line-height:1.3;color:var(--deep)}
+dialog{overflow-y:auto;overscroll-behavior:contain}
+body.lock{position:fixed;left:0;right:0;width:100%}
 </style>
 </head>
 <body>
@@ -265,6 +267,24 @@ $('#file').onchange=e=>{
   }).catch(()=>alert(t('badfile')));
   e.target.value='';
 };
+let lockY=0;
+function lockScroll(){
+  if(document.body.classList.contains('lock'))return;
+  lockY=window.scrollY;
+  document.body.style.top=-lockY+'px';
+  document.body.classList.add('lock');
+}
+function unlockScroll(){
+  if(document.querySelector('dialog[open]')||!document.body.classList.contains('lock'))return;
+  document.body.classList.remove('lock');
+  document.body.style.top='';
+  window.scrollTo(0,lockY);
+}
+document.querySelectorAll('dialog').forEach(d=>{
+  const sm=d.showModal.bind(d);
+  d.showModal=()=>{lockScroll();sm()};
+  d.addEventListener('close',unlockScroll);
+});
 function applyLang(){
   document.documentElement.lang=L==='cs'?'cs':'sk';
   document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=t(e.dataset.i18n));
